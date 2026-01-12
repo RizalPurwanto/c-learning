@@ -67,3 +67,159 @@ In short, writing any C program will involves :
 - linking object files into an executable
 
 It is important to know both compile and link are distict steps, as there will be a lot of times where errors are from compilers, while others are from linkers.
+
+**Explanation for the codes**
+```
+#include <stdio.h>
+```
+`#include` is not a function but a **preprocessor directive**, which used to include one of C's built in files, in this case it's **stdio.h**, into the current file, which stands for **standard input/output** functions that can be used inside the code, like `puts()` and such. This **stdio.h** is required to include in order to use `printf()` and `puts()`. 
+
+```
+int main() { 
+
+}
+```
+All C/C++ program needs function named `main()`. This is the main thing that executed when the program starts, as such without it there will be error when a program is linked. The lines above define the function `main()`. 
+
+
+```
+puts("hello world");
+```
+The line above  calls one of C's built in function `puts()`, which outputs the string to terminal. 
+
+```
+return 0;
+```
+Every program of C returns a number, so that the OS knows how the process ended. If a process ended safely, a 0 is returned. On error, `-1` is returned. Other values depend on the system. This number is referred to as exit status. Because `main()` is a function that returns an integer/int, hence the `int main()`, the exit code of the program is whatever it returns 
+
+**Introduction to printing**
+`puts()` is only for printing strings and nothing more, for variables use `printf()` instead.
+
+```
+printf("hello world\n");
+```
+The `\n` at the end is a control character, specifically called newline character. It used to tell the terminal to shift the cursor to line below.
+
+Without it, the cursor does not move and instead continues from the same line. For example:
+```
+printf("hello");
+printf("world");
+printf("!");
+```
+the lines above will prints:
+```
+helloworld!
+```
+instead of:
+```
+hello
+world 
+!
+```
+because the cursor did not move below.
+
+**Basics**
+1. Comments
+```c
+// comments that look like this span a single line.
+/* On the other hand, if you really need to be writing longer blocks of notes,
+multi-line comments can be written like this. */
+```
+
+2. Variables
+To **declare** something is to make it known. To **define** something is to assign it's data to value, also sometimes called **assignment**. To create a variable can be done by either declare and define it, or just declare it. 
+
+```c
+// to declare a variable, write it's type, then the name. 
+int number1; 
+
+// you can then later assign the variable to whatever you want. 
+number1 = 4;
+
+// variables can be defined and declared in the same line. 
+int number2 = 7;
+```
+
+Not defining variable when declaring it causes the variable staying uninitialized, unknown value. In C these valuable don't get assigned automatically, as such always initialize the variable to prevent using uninitialized data.
+
+Do not re-define a variable, as it would cause error. Instead re-assign it to change the value.
+```c
+// why are you setting number's type twice in a row? this would error!
+int number = 3;
+int number = 7;
+
+// OK, this would set number to 3, then re-assign it as 7.
+int number = 3;
+number = 7;
+```
+
+Variables in C are block scoped, only accessible to the block they declared in.  Curly braces can be used to create a scope
+```c
+int main() {
+	int number1 = 4;
+
+	// note: curly braces on their own can be used to create a new scope.
+	{
+		int number2 = number1 + 2;
+	}
+
+	int number3 = number1 + number2; // error! number2 is in a diferent scope.
+}
+```
+
+Variables with a value that won't change is called `constants`. In C it is denoted with `const` before the variable's type and name:
+```c
+const int MAX_VALUE = 40;
+MAX_VALUE = 3; // this line would error! you can't modify a constant
+```
+
+3. Printing variables
+
+For printing numbers to terminal, `puts()` cannot be used as it's only for strings. The alternative would be `printf()` (*print formatted*). This function also supports **variadic arguments**, meaning that accept various kind of arguments instead of just printing single variable at a time.
+
+Unlike `puts()`, `printf()` needs two main things to pass into it: a **format**, which describes the layout and what kind of data each argument will be interpreted as, and the arguments themselves:
+
+```c
+#include <stdio.h>
+
+int main() {
+	// Our variables that we will be printing.
+	int num1 = 5;
+	int num2 = 3;
+	int num3 = 12;
+
+	printf(
+		"three numbers: %d, %d, and 0x%02X\n",
+		num1,num2,num3
+	);
+
+	return 0;
+}
+```
+
+This would print:
+```
+three numbers: 5, 3, and 0x0C
+```
+
+Notice that newline `\n` need to be added just like when using `puts()`.
+As for how the format works, take a look on this string for the formatting:
+
+```
+"three numbers: %d, %d, and 0x%02X\n"
+
+```
+
+`%d` here is a **format specifier**. All of them starts with `%`, followed by characters for additional options. After each format specifier is processed, `printf` then proceeds to the next argument in its list of arguments. So the first `%d` will be replaced with `num1`, second `%d` replaced by `num2`, and third will be replaced with `num3`, third specifier uses `%02X` format specifier which can be explained below:
+
+- `0`, so empty spaces are filled with zeroes.
+- `2`, so the text will have empty space added until it's `2` characters long.
+- `X`, so the text will have hexadecimal representation, rather than hexadecimal representation. Since this is `X` and not `x`, the text will also be capitalized.
+
+Notice that the `0x` part isn't actually part of the format specifier at all, it's just normal text. For a list of format specifiers, [see the documentation for printf](https://en.cppreference.com/w/c/io/fprintf.html)
+
+ **Another important thing to add is that the number of arguments must always match the number of format specifiers.** `printf` is not smart: it will blindly attempt to use more than its able to use. If you were to attempt to do:
+ ```c
+printf("numbers: %d, %d\n",1)
+```
+crashes could end up occuring, as a result of the second format specifier having no argument to use.
