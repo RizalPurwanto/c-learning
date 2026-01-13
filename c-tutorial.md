@@ -219,7 +219,103 @@ As for how the format works, take a look on this string for the formatting:
 Notice that the `0x` part isn't actually part of the format specifier at all, it's just normal text. For a list of format specifiers, [see the documentation for printf](https://en.cppreference.com/w/c/io/fprintf.html)
 
  **Another important thing to add is that the number of arguments must always match the number of format specifiers.** `printf` is not smart: it will blindly attempt to use more than its able to use. If you were to attempt to do:
- ```c
+
+```c
 printf("numbers: %d, %d\n",1)
 ```
 crashes could end up occuring, as a result of the second format specifier having no argument to use.
+
+
+**The Preprocessor**
+
+In the previous code examples, notice that some lines started with `#` character. As explained before, the computer splits the compilation process into several steps, and one of the earliest ones is preprocessing. 
+
+Before any of the code is properly compiled, the preprocessor, which is a very advanced text replacement program, scans through each lines and process any `#includes`, `#defines`, and such. To see this in practice take a look on main concept in C language: the header files. Put the example file below into `include/player.h` and `source/main.c`
+
+`include/player.h`:
+```c
+#define PLAYER_MAXHEALTH (30)
+#define PLAYER_DAMAGEVAL (PLAYER_MAXHEALTH-3)
+
+// a small note: the "extern" keyword is usually used for undefined variables
+// that get declared later on in a different file. It's not *needed*, so it's
+// usually just there for clarification.
+extern int gPlayerHP;
+```
+
+`source/main.c`
+```c
+// another note: for #include, <> is usually used for builtin header files. ""
+// is the one that's commonly used for user-made headers.
+
+#include <stdio.h>
+#include "player.h"
+
+int gPlayerHP = PLAYER_MAXHEALTH;
+
+int main() {
+	gPlayerHP -= PLAYER_DAMAGEVAL;
+
+	printf("player HP: %d\n",gPlayerHP);
+	return 0;
+}
+```
+
+To compile, add the path of the header files, since the compiler does not know where to find it. Use the `-I<includepath>`. Since the header files are in `include/` folder, it's written as `-Iinclude`
+
+```
+clang --std=c23 -Iinclude source/main.c -c -o build/main.o clang build/main.o -o bin/program.exe
+```
+
+1. Macros
+from the `include/player.h` file, notice that it has 2 defines, and the value of these can be used directly as shown above:
+
+```c
+int gPlayerHP = PLAYER_MAXHEALTH;
+```
+this way, `gPlayerHP`'s value would become `PLAYER_MAXHEALTH`, that is 30.
+
+These are known as Macros. Macros are used to hold value as constant. Do note however, that when defining macros values with operation, the MDAS rule apply:
+
+```c
+#define DAMAGEVAL 30 - 3
+#define DAMAGEMUL 2
+
+int number = DAMAGEVAL * DAMAGEMUL;
+```
+
+The expression above would evaluate to:
+```c
+int number = 30 - 3 * 2;
+```
+In other words, 24. Remember, Multiplication and Division first, then Addition and Subtraction.
+
+As such wrapping the macros's definition inside parentheses could change it:
+```c
+#define DAMAGEVAL (30 - 3)
+#define DAMAGEMUL (2)
+
+// number would be 54,
+int number = DAMAGEVAL * DAMAGEMUL;
+```
+
+
+2. Including headers
+To explain more in detail, `#include` is a basic preprocessor directive that includes a file in the current file it's in. It preprocesses that file's text, then includes all of that onto the actual file. To demonstrate this is how it would look like in `main.c` where player.h header is included.
+
+```c
+
+// <stdio.h is a long file, but imagine it's here...>
+#define PLAYER_MAXHEALTH 30
+#define PLAYER_DAMAGEVAL PLAYER_MAXHEALTH-3
+extern int gPlayerHP;
+
+int gPlayerHP = PLAYER_MAXHEALTH;
+
+int main() {
+	gPlayerHP -= PLAYER_DAMAGEVAL;
+
+	printf("player HP: %d\n",gPlayerHP);
+	return 0;
+}
+```
